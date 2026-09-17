@@ -4,19 +4,6 @@ import SwiftUI
 import Combine
 
 // ============================================================
-// @main — SwiftUI app entry
-// ============================================================
-@main
-struct ChattecApp: App {
-    var body: some Scene {
-        WindowGroup {
-            RootView()
-                .preferredColorScheme(.dark)
-        }
-    }
-}
-
-// ============================================================
 // Models
 // ============================================================
 struct Member: Codable, Identifiable, Equatable {
@@ -46,7 +33,7 @@ struct Message: Codable, Identifiable, Equatable {
 }
 
 // ============================================================
-// AppState — state + Socket.IO client
+// AppState
 // ============================================================
 final class AppState: ObservableObject {
     static let shared = AppState()
@@ -67,7 +54,7 @@ final class AppState: ObservableObject {
 
     private init() {}
 
-    // MARK: - Anonymous connect (used for join)
+    // MARK: - Anonymous connect
     func connectAnonymous() {
         socket?.disconnect()
         socket?.removeAllHandlers()
@@ -87,7 +74,7 @@ final class AppState: ObservableObject {
         socket?.connect()
     }
 
-    // MARK: - Authenticated connect (used after join)
+    // MARK: - Authenticated connect
     func connectWithToken(_ token: String) {
         socket?.disconnect()
         socket?.removeAllHandlers()
