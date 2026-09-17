@@ -2,7 +2,7 @@ name: Chattec
 options:
   bundleIdPrefix: com.yourname
   deploymentTarget:
-    iOS: "15.0"
+    iOS: "12.0"
   createIntermediateGroups: true
 
 packages:
@@ -29,4 +29,4 @@ targets:
         GENERATE_INFOPLIST_FILE: NO
         CODE_SIGNING_ALLOWED: NO
         SWIFT_VERSION: "5.0"
-        IPHONEOS_DEPLOYMENT_TARGET: "15.0"
+        IPHONEOS_DEPLOYMENT_TARGET: "12.0"
