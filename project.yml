@@ -1,0 +1,32 @@
+name: Chattec
+options:
+  bundleIdPrefix: com.yourname
+  deploymentTarget:
+    iOS: "15.0"
+  createIntermediateGroups: true
+
+packages:
+  SocketIO:
+    url: https://github.com/socketio/socket.io-client-swift
+    from: 16.1.0
+
+targets:
+  Chattec:
+    type: application
+    platform: iOS
+    sources:
+      - AppDelegate.swift
+      - ChattecApp.swift
+      - ChattecUI.swift
+    info:
+      path: Info.plist
+    dependencies:
+      - package: SocketIO
+        product: SocketIO
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.yourname.chattec
+        GENERATE_INFOPLIST_FILE: NO
+        CODE_SIGNING_ALLOWED: NO
+        SWIFT_VERSION: "5.0"
+        IPHONEOS_DEPLOYMENT_TARGET: "15.0"
