@@ -1,19 +1,17 @@
 import SwiftUI
 
 // ============================================================
-// Root — switches between Join and Chat
+// Root
 // ============================================================
 struct RootView: View {
     @ObservedObject var state = AppState.shared
 
     var body: some View {
-        ZStack {
+        Group {
             if state.isJoined {
                 ChatView()
-                    .transition(.opacity)
             } else {
                 JoinView()
-                    .transition(.opacity)
             }
         }
         .preferredColorScheme(.dark)
@@ -38,82 +36,84 @@ struct JoinView: View {
             )
             .ignoresSafeArea()
 
-            VStack(spacing: 20) {
-                Spacer()
+            ScrollView {
+                VStack(spacing: 20) {
+                    Spacer().frame(height: 40)
 
-                Text("Chattec")
-                    .font(.system(size: 32, weight: .bold))
-                    .foregroundColor(Color(hex: 0x66c0f4))
+                    Text("Chattec")
+                        .font(.system(size: 32, weight: .bold))
+                        .foregroundColor(Color(hex: 0x66c0f4))
 
-                Text("Pick a name and photo to enter the chat")
-                    .font(.system(size: 13))
-                    .foregroundColor(Color(hex: 0x8f98a0))
+                    Text("Pick a name and photo to enter the chat")
+                        .font(.system(size: 13))
+                        .foregroundColor(Color(hex: 0x8f98a0))
 
-                Button {
-                    showPicker = true
-                } label: {
-                    ZStack {
-                        Circle()
-                            .fill(LinearGradient(
-                                colors: [Color(hex: 0x66c0f4), Color(hex: 0x2a475e)],
-                                startPoint: .topLeading, endPoint: .bottomTrailing))
-                            .frame(width: 110, height: 110)
-
-                        if let d = avatarData, let ui = UIImage(data: d) {
-                            Image(uiImage: ui)
-                                .resizable()
-                                .scaledToFill()
+                    Button {
+                        showPicker = true
+                    } label: {
+                        ZStack {
+                            Circle()
+                                .fill(LinearGradient(
+                                    colors: [Color(hex: 0x66c0f4), Color(hex: 0x2a475e)],
+                                    startPoint: .topLeading, endPoint: .bottomTrailing))
                                 .frame(width: 110, height: 110)
-                                .clipShape(Circle())
-                        } else {
-                            Text("?")
-                                .font(.system(size: 44, weight: .bold))
-                                .foregroundColor(.white)
+
+                            if let d = avatarData, let ui = UIImage(data: d) {
+                                Image(uiImage: ui)
+                                    .resizable()
+                                    .scaledToFill()
+                                    .frame(width: 110, height: 110)
+                                    .clipShape(Circle())
+                            } else {
+                                Text("?")
+                                    .font(.system(size: 44, weight: .bold))
+                                    .foregroundColor(.white)
+                            }
                         }
                     }
-                }
-                .buttonStyle(.plain)
-                .padding(.top, 12)
+                    .buttonStyle(.plain)
+                    .padding(.top, 12)
 
-                Text("Tap to upload a photo (optional)")
-                    .font(.system(size: 11))
-                    .foregroundColor(Color(hex: 0x8f98a0))
+                    Text("Tap to upload a photo (optional)")
+                        .font(.system(size: 11))
+                        .foregroundColor(Color(hex: 0x8f98a0))
 
-                TextField("Your name", text: $name)
-                    .padding(13)
-                    .background(Color.black.opacity(0.3))
-                    .foregroundColor(.white)
-                    .cornerRadius(6)
-                    .autocorrectionDisabled()
-                    .textInputAutocapitalization(.never)
-                    .padding(.top, 8)
-
-                Button {
-                    joinTapped()
-                } label: {
-                    Text(isJoining ? "Joining..." : "Enter Chat")
-                        .font(.system(size: 15, weight: .semibold))
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
+                    TextField("Your name", text: $name)
                         .padding(13)
-                        .background(LinearGradient(
-                            colors: [Color(hex: 0x67c1f5), Color(hex: 0x417a9b)],
-                            startPoint: .top, endPoint: .bottom))
+                        .background(Color.black.opacity(0.3))
+                        .foregroundColor(.white)
                         .cornerRadius(6)
-                }
-                .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty || isJoining)
-                .opacity(name.trimmingCharacters(in: .whitespaces).isEmpty ? 0.5 : 1.0)
+                        .autocorrectionDisabled()
+                        .textInputAutocapitalization(.never)
+                        .padding(.top, 8)
 
-                if let err = state.connectionError {
-                    Text(err)
-                        .font(.system(size: 12))
-                        .foregroundColor(.red)
-                        .padding(8)
-                }
+                    Button {
+                        joinTapped()
+                    } label: {
+                        Text(isJoining ? "Joining..." : "Enter Chat")
+                            .font(.system(size: 15, weight: .semibold))
+                            .foregroundColor(.white)
+                            .frame(maxWidth: .infinity)
+                            .padding(13)
+                            .background(LinearGradient(
+                                colors: [Color(hex: 0x67c1f5), Color(hex: 0x417a9b)],
+                                startPoint: .top, endPoint: .bottom))
+                            .cornerRadius(6)
+                    }
+                    .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty || isJoining)
+                    .opacity(name.trimmingCharacters(in: .whitespaces).isEmpty ? 0.5 : 1.0)
 
-                Spacer()
+                    if let err = state.connectionError {
+                        Text(err)
+                            .font(.system(size: 12))
+                            .foregroundColor(.red)
+                            .padding(8)
+                    }
+
+                    Spacer().frame(height: 60)
+                }
+                .padding(28)
             }
-            .padding(28)
         }
         .sheet(isPresented: $showPicker) {
             PhotoPicker { data in
@@ -136,8 +136,8 @@ struct JoinView: View {
             avatar = "data:image/jpeg;base64,\(d.base64EncodedString())"
         }
 
-        // Give the socket a moment to connect, then emit join
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+        // Give the socket time to finish handshake
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
             state.join(name: trimmed, avatar: avatar)
         }
     }
@@ -149,20 +149,18 @@ struct JoinView: View {
 struct ChatView: View {
     @ObservedObject var state = AppState.shared
     @State private var draft: String = ""
+    @FocusState private var inputFocused: Bool
 
     var body: some View {
         VStack(spacing: 0) {
             header
-
             messagesList
-
             if let t = state.typingName {
                 typingRow(t)
             }
-
             inputBar
         }
-        .background(Color(hex: 0x0f1319))
+        .background(Color(hex: 0x0f1319).ignoresSafeArea())
         .ignoresSafeArea(.keyboard, edges: .bottom)
     }
 
@@ -181,6 +179,7 @@ struct ChatView: View {
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 12)
+        .frame(maxWidth: .infinity)
         .background(Color(hex: 0x16202d))
         .overlay(
             Rectangle()
@@ -207,6 +206,7 @@ struct ChatView: View {
                 .padding(20)
             }
             .background(Color(hex: 0x0f1319))
+            .scrollDismissesKeyboard(.interactively)
             .onChange(of: state.messages.count) { _ in
                 if let last = state.messages.last {
                     withAnimation(.easeOut(duration: 0.15)) {
@@ -215,6 +215,7 @@ struct ChatView: View {
                 }
             }
         }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 
     private var emptyState: some View {
@@ -244,19 +245,21 @@ struct ChatView: View {
             .background(Color(hex: 0x0f1319))
     }
 
-    // MARK: Input bar
+    // MARK: Input
     private var inputBar: some View {
         HStack(spacing: 8) {
-            TextField("Message...", text: $draft, onEditingChanged: { editing in
-                state.sendTyping(editing)
-            })
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
-            .background(Color.black.opacity(0.3))
-            .foregroundColor(.white)
-            .cornerRadius(22)
-            .submitLabel(.send)
-            .onSubmit(sendDraft)
+            TextField("Message...", text: $draft)
+                .focused($inputFocused)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 12)
+                .background(Color.black.opacity(0.3))
+                .foregroundColor(.white)
+                .cornerRadius(22)
+                .submitLabel(.send)
+                .onSubmit(sendDraft)
+                .onChange(of: draft) { newValue in
+                    state.sendTyping(!newValue.isEmpty)
+                }
 
             Button(action: sendDraft) {
                 Image(systemName: "arrow.up")
@@ -328,11 +331,12 @@ struct MessageRow: View {
 
             if !isMine { Spacer(minLength: 40) }
         }
+        .frame(maxWidth: .infinity, alignment: isMine ? .trailing : .leading)
     }
 }
 
 // ============================================================
-// Avatar view (handles data URLs and fallback initials)
+// Avatar
 // ============================================================
 struct AvatarView: View {
     let initial: String
@@ -406,7 +410,7 @@ struct PhotoPicker: UIViewControllerRepresentable {
 }
 
 // ============================================================
-// Color hex helper
+// Color helper
 // ============================================================
 extension Color {
     init(hex: UInt32) {
