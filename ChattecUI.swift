@@ -34,7 +34,7 @@ struct JoinView: View {
                 colors: [Color(hex: 0x1b2838), Color(hex: 0x0e141c)],
                 startPoint: .top, endPoint: .bottom
             )
-            .ignoresSafeArea()
+            .edgesIgnoringSafeArea(.all)
 
             ScrollView {
                 VStack(spacing: 20) {
@@ -71,7 +71,7 @@ struct JoinView: View {
                             }
                         }
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(PlainButtonStyle())
                     .padding(.top, 12)
 
                     Text("Tap to upload a photo (optional)")
@@ -83,8 +83,8 @@ struct JoinView: View {
                         .background(Color.black.opacity(0.3))
                         .foregroundColor(.white)
                         .cornerRadius(6)
-                        .autocorrectionDisabled()
-                        .textInputAutocapitalization(.never)
+                        .autocapitalization(.none)
+                        .disableAutocorrection(true)
                         .padding(.top, 8)
 
                     Button {
@@ -136,7 +136,6 @@ struct JoinView: View {
             avatar = "data:image/jpeg;base64,\(d.base64EncodedString())"
         }
 
-        // Give the socket time to finish handshake
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) {
             state.join(name: trimmed, avatar: avatar)
         }
@@ -149,7 +148,7 @@ struct JoinView: View {
 struct ChatView: View {
     @ObservedObject var state = AppState.shared
     @State private var draft: String = ""
-    @FocusState private var inputFocused: Bool
+    @State private var inputFocused: Bool = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -160,8 +159,7 @@ struct ChatView: View {
             }
             inputBar
         }
-        .background(Color(hex: 0x0f1319).ignoresSafeArea())
-        .ignoresSafeArea(.keyboard, edges: .bottom)
+        .background(Color(hex: 0x0f1319).edgesIgnoringSafeArea(.all))
     }
 
     // MARK: Header
@@ -206,12 +204,9 @@ struct ChatView: View {
                 .padding(20)
             }
             .background(Color(hex: 0x0f1319))
-            .scrollDismissesKeyboard(.interactively)
             .onChange(of: state.messages.count) { _ in
                 if let last = state.messages.last {
-                    withAnimation(.easeOut(duration: 0.15)) {
-                        proxy.scrollTo(last.id, anchor: .bottom)
-                    }
+                    proxy.scrollTo(last.id, anchor: .bottom)
                 }
             }
         }
@@ -237,7 +232,8 @@ struct ChatView: View {
     // MARK: Typing
     private func typingRow(_ name: String) -> some View {
         Text("\(name) is typing...")
-            .font(.system(size: 12).italic())
+            .font(.system(size: 12))
+            .italic()
             .foregroundColor(Color(hex: 0x8f98a0))
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, 20)
@@ -248,15 +244,14 @@ struct ChatView: View {
     // MARK: Input
     private var inputBar: some View {
         HStack(spacing: 8) {
-            TextField("Message...", text: $draft)
-                .focused($inputFocused)
+            TextField("Message...", text: $draft, onCommit: sendDraft)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 12)
                 .background(Color.black.opacity(0.3))
                 .foregroundColor(.white)
                 .cornerRadius(22)
-                .submitLabel(.send)
-                .onSubmit(sendDraft)
+                .autocapitalization(.none)
+                .disableAutocorrection(true)
                 .onChange(of: draft) { newValue in
                     state.sendTyping(!newValue.isEmpty)
                 }
@@ -326,7 +321,7 @@ struct MessageRow: View {
                     .padding(.horizontal, 14)
                     .padding(.vertical, 10)
                     .background(isMine ? Color(hex: 0x1a9fff) : Color(hex: 0x2a3f5a))
-                    .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+                    .clipShape(RoundedRectangle(cornerRadius: 14))
             }
 
             if !isMine { Spacer(minLength: 40) }
