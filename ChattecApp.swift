@@ -4,6 +4,19 @@ import SwiftUI
 import Combine
 
 // ============================================================
+// @main — SwiftUI app entry
+// ============================================================
+@main
+struct ChattecApp: App {
+    var body: some Scene {
+        WindowGroup {
+            RootView()
+                .preferredColorScheme(.dark)
+        }
+    }
+}
+
+// ============================================================
 // Models
 // ============================================================
 struct Member: Codable, Identifiable, Equatable {
@@ -33,7 +46,7 @@ struct Message: Codable, Identifiable, Equatable {
 }
 
 // ============================================================
-// AppState — holds everything and talks to the server
+// AppState — state + Socket.IO client
 // ============================================================
 final class AppState: ObservableObject {
     static let shared = AppState()
@@ -48,12 +61,13 @@ final class AppState: ObservableObject {
 
     private var manager: SocketManager?
     private var socket: SocketIOClient?
+    private var hasJoined = false
 
     let serverURL = URL(string: "https://subhyaloid-kallie-bihourly.ngrok-free.dev")!
 
     private init() {}
 
-    // MARK: - Connect without token (for join)
+    // MARK: - Anonymous connect (used for join)
     func connectAnonymous() {
         socket?.disconnect()
         socket?.removeAllHandlers()
@@ -73,7 +87,7 @@ final class AppState: ObservableObject {
         socket?.connect()
     }
 
-    // MARK: - Reconnect with token (authenticated)
+    // MARK: - Authenticated connect (used after join)
     func connectWithToken(_ token: String) {
         socket?.disconnect()
         socket?.removeAllHandlers()
@@ -96,8 +110,11 @@ final class AppState: ObservableObject {
 
     // MARK: - Actions
     func join(name: String, avatar: String?) {
+        guard !hasJoined else { return }
+        hasJoined = true
         var payload: [String: Any] = ["name": name]
         if let a = avatar { payload["avatar"] = a }
+        print("[join] emitting room:join name=\(name) hasAvatar=\(avatar != nil)")
         socket?.emit("room:join", payload)
     }
 
@@ -114,24 +131,27 @@ final class AppState: ObservableObject {
         guard let socket = socket else { return }
 
         socket.on(clientEvent: .connect) { _, _ in
-            print("✅ socket connected, sid =", self.socket?.sid ?? "-")
+            print("✅ connected, sid =", self.socket?.sid ?? "-")
+            DispatchQueue.main.async {
+                self.connectionError = nil
+            }
         }
 
         socket.on(clientEvent: .disconnect) { data, _ in
-            print("❌ socket disconnected:", data)
+            print("❌ disconnected:", data)
         }
 
         socket.on(clientEvent: .error) { data, _ in
-            print("⚠️ socket error:", data)
+            print("⚠️ error:", data)
             DispatchQueue.main.async {
                 self.connectionError = "Connection error"
             }
         }
 
-        // --- Join OK ---
         socket.on("room:join:ok") { [weak self] data, _ in
             guard let self = self,
                   let dict = data.first as? [String: Any] else { return }
+            print("[join:ok] \(dict)")
 
             if let userDict = dict["user"] as? [String: Any],
                let json = try? JSONSerialization.data(withJSONObject: userDict),
@@ -152,17 +172,16 @@ final class AppState: ObservableObject {
             }
         }
 
-        // --- Join error ---
         socket.on("room:join:error") { [weak self] data, _ in
             guard let self = self,
                   let dict = data.first as? [String: Any],
                   let err = dict["error"] as? String else { return }
             DispatchQueue.main.async {
                 self.connectionError = err
+                self.hasJoined = false
             }
         }
 
-        // --- Self ---
         socket.on("room:self") { [weak self] data, _ in
             guard let self = self,
                   let dict = data.first as? [String: Any],
@@ -170,10 +189,10 @@ final class AppState: ObservableObject {
                   let m = try? JSONDecoder().decode(Member.self, from: json) else { return }
             DispatchQueue.main.async {
                 self.me = m
+                self.isJoined = true
             }
         }
 
-        // --- Message ---
         socket.on("room:message") { [weak self] data, _ in
             guard let self = self,
                   let dict = data.first as? [String: Any],
@@ -184,7 +203,6 @@ final class AppState: ObservableObject {
             }
         }
 
-        // --- History ---
         socket.on("room:history") { [weak self] data, _ in
             guard let self = self,
                   let arr = data.first as? [[String: Any]] else { return }
@@ -198,7 +216,6 @@ final class AppState: ObservableObject {
             }
         }
 
-        // --- Members count ---
         socket.on("room:members") { [weak self] data, _ in
             guard let self = self,
                   let arr = data.first as? [[String: Any]] else { return }
@@ -207,7 +224,6 @@ final class AppState: ObservableObject {
             }
         }
 
-        // --- Typing ---
         socket.on("room:typing") { [weak self] data, _ in
             guard let self = self,
                   let dict = data.first as? [String: Any],
@@ -218,7 +234,6 @@ final class AppState: ObservableObject {
             }
         }
 
-        // --- Message deleted ---
         socket.on("room:deleted") { [weak self] data, _ in
             guard let self = self,
                   let dict = data.first as? [String: Any],
