@@ -16,6 +16,7 @@ targets:
     platform: iOS
     sources:
       - AppDelegate.swift
+      - SceneDelegate.swift
       - ChattecApp.swift
       - ChattecUI.swift
     info:
