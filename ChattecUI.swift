@@ -15,6 +15,8 @@ struct RootView: View {
             }
         }
         .preferredColorScheme(.dark)
+        .ignoresSafeArea()
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
 
@@ -34,11 +36,11 @@ struct JoinView: View {
                 colors: [Color(hex: 0x1b2838), Color(hex: 0x0e141c)],
                 startPoint: .top, endPoint: .bottom
             )
-            .edgesIgnoringSafeArea(.all)
+            .ignoresSafeArea()
 
             ScrollView {
                 VStack(spacing: 20) {
-                    Spacer().frame(height: 40)
+                    Spacer().frame(height: 60)
 
                     Text("Chattec")
                         .font(.system(size: 32, weight: .bold))
@@ -110,11 +112,12 @@ struct JoinView: View {
                             .padding(8)
                     }
 
-                    Spacer().frame(height: 60)
+                    Spacer().frame(height: 80)
                 }
                 .padding(28)
             }
         }
+        .ignoresSafeArea()
         .sheet(isPresented: $showPicker) {
             PhotoPicker { data in
                 avatarData = data
@@ -148,7 +151,6 @@ struct JoinView: View {
 struct ChatView: View {
     @ObservedObject var state = AppState.shared
     @State private var draft: String = ""
-    @State private var inputFocused: Bool = false
 
     var body: some View {
         VStack(spacing: 0) {
@@ -159,7 +161,8 @@ struct ChatView: View {
             }
             inputBar
         }
-        .background(Color(hex: 0x0f1319).edgesIgnoringSafeArea(.all))
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .background(Color(hex: 0x0f1319).ignoresSafeArea())
     }
 
     // MARK: Header
@@ -176,9 +179,10 @@ struct ChatView: View {
             Spacer()
         }
         .padding(.horizontal, 20)
-        .padding(.vertical, 12)
+        .padding(.top, 50)          // <- push below status bar
+        .padding(.bottom, 12)
         .frame(maxWidth: .infinity)
-        .background(Color(hex: 0x16202d))
+        .background(Color(hex: 0x16202d).ignoresSafeArea(edges: .top))
         .overlay(
             Rectangle()
                 .frame(height: 1)
@@ -201,7 +205,8 @@ struct ChatView: View {
                         }
                     }
                 }
-                .padding(20)
+                .padding(.horizontal, 20)
+                .padding(.vertical, 16)
             }
             .background(Color(hex: 0x0f1319))
             .onChange(of: state.messages.count) { _ in
@@ -268,8 +273,9 @@ struct ChatView: View {
             .opacity(draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 0.5 : 1.0)
         }
         .padding(.horizontal, 16)
-        .padding(.vertical, 12)
-        .background(Color(hex: 0x16202d))
+        .padding(.top, 12)
+        .padding(.bottom, 34)       // <- push above home indicator
+        .background(Color(hex: 0x16202d).ignoresSafeArea(edges: .bottom))
         .overlay(
             Rectangle()
                 .frame(height: 1)
