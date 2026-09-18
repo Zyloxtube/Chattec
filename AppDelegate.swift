@@ -1,6 +1,13 @@
 import UIKit
 import SwiftUI
 
+final class FullScreenHostingController<Content: View>: UIHostingController<Content> {
+    override func viewSafeAreaInsetsDidChange() {
+        super.viewSafeAreaInsetsDidChange()
+        additionalSafeAreaInsets = .zero
+    }
+}
+
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
     var window: UIWindow?
@@ -9,8 +16,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         let window = UIWindow(frame: UIScreen.main.bounds)
 
-        let host = UIHostingController(rootView: RootView())
-        host._disableSafeArea = true
+        let host = FullScreenHostingController(rootView: RootView())
 
         window.rootViewController = host
         window.makeKeyAndVisible()
