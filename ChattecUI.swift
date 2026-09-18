@@ -16,6 +16,7 @@ struct RootView: View {
         }
         .preferredColorScheme(.dark)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color(hex: 0x0f1319).ignoresSafeArea())
     }
 }
 
@@ -161,7 +162,6 @@ struct ChatView: View {
             inputBar
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(Color(hex: 0x0f1319))
     }
 
     // MARK: Header
@@ -178,10 +178,9 @@ struct ChatView: View {
             Spacer()
         }
         .padding(.horizontal, 20)
-        .padding(.top, 44)
-        .padding(.bottom, 12)
+        .padding(.vertical, 12)
         .frame(maxWidth: .infinity)
-        .background(Color(hex: 0x16202d))
+        .background(Color(hex: 0x16202d).ignoresSafeArea(edges: .top))
     }
 
     // MARK: Messages
@@ -266,9 +265,8 @@ struct ChatView: View {
             .opacity(draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty ? 0.5 : 1.0)
         }
         .padding(.horizontal, 16)
-        .padding(.top, 12)
-        .padding(.bottom, 34)
-        .background(Color(hex: 0x16202d))
+        .padding(.vertical, 12)
+        .background(Color(hex: 0x16202d).ignoresSafeArea(edges: .bottom))
     }
 
     private func sendDraft() {
