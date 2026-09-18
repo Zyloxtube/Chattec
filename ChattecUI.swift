@@ -15,7 +15,6 @@ struct RootView: View {
             }
         }
         .preferredColorScheme(.dark)
-        .ignoresSafeArea()
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
@@ -161,8 +160,8 @@ struct ChatView: View {
             }
             inputBar
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .background(Color(hex: 0x0f1319).ignoresSafeArea())
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(Color(hex: 0x0f1319))
     }
 
     // MARK: Header
@@ -179,16 +178,10 @@ struct ChatView: View {
             Spacer()
         }
         .padding(.horizontal, 20)
-        .padding(.top, 50)          // <- push below status bar
+        .padding(.top, 44)
         .padding(.bottom, 12)
         .frame(maxWidth: .infinity)
-        .background(Color(hex: 0x16202d).ignoresSafeArea(edges: .top))
-        .overlay(
-            Rectangle()
-                .frame(height: 1)
-                .foregroundColor(.black),
-            alignment: .bottom
-        )
+        .background(Color(hex: 0x16202d))
     }
 
     // MARK: Messages
@@ -274,14 +267,8 @@ struct ChatView: View {
         }
         .padding(.horizontal, 16)
         .padding(.top, 12)
-        .padding(.bottom, 34)       // <- push above home indicator
-        .background(Color(hex: 0x16202d).ignoresSafeArea(edges: .bottom))
-        .overlay(
-            Rectangle()
-                .frame(height: 1)
-                .foregroundColor(.black),
-            alignment: .top
-        )
+        .padding(.bottom, 34)
+        .background(Color(hex: 0x16202d))
     }
 
     private func sendDraft() {
